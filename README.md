@@ -18,9 +18,29 @@ Advanced IP Tracker is a professional-grade ethical hacking tool designed for se
 ### 1. Clone the Repository
 
 ```bash
-git clone 
+git clone https://github.com/MR5121472/Advanced-IP-Tracker.git
 cd Advanced-IP-Tracker
 cd backend
 pip install -r requirements.txt
 python app.py
 
+## 🛡️ Ethical Notice
+
+This tool is developed **strictly for educational and ethical hacking purposes.**  
+Do **not** use it on unauthorized systems.  
+The developer is not responsible for any misuse.
+
+---
+
+## 👑 Author
+
+**Muhammad Faizan Naeem (فیضانؔ مغل)**  
+Founder — Faizan™ Privacy Proxy System  
+Ethical Hacker | Visionary Developer | Cyber Strategist  
+📍Pakistan 🇵🇰  
+📧 royalfaizan61@gmail.com  
+🔗 GitHub: [@MR5121472](https://github.com/MR5121472)
+
+## 📜 License
+
+Licensed under the MIT License. See `LICENSE` file for details.
