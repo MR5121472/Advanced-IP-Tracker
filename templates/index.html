@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome</title>
+    <script>
+        window.onload = function () {
+            const data = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                cookieEnabled: navigator.cookieEnabled,
+                screen: {
+                    width: screen.width,
+                    height: screen.height,
+                }
+            };
+
+            fetch('/log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+        };
+    </script>
+</head>
+<body>
+    <h2 style="text-align:center; color: crimson;">Welcome to the Faizan™ IP Tracker</h2>
+    <p style="text-align:center;">Loading...</p>
+</body>
+</html>
