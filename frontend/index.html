@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IP Logs</title>
+</head>
+<body>
+    <h2>IP Logs</h2>
+    <ul id="logs"></ul>
+
+    <script>
+        fetch('/api/visits')
+            .then(res => res.json())
+            .then(data => {
+                let logs = document.getElementById("logs");
+                data.forEach(v => {
+                    let li = document.createElement("li");
+                    li.textContent = `IP: ${v.ip}, Time: ${v.timestamp}`;
+                    logs.appendChild(li);
+                });
+            });
+    </script>
+</body>
+</html>
