@@ -1,48 +1,49 @@
-from flask import Flask, request, redirect, jsonify
-import sqlite3
-import uuid
-from datetime import datetime
+from flask import Flask, request, render_template_string
+import datetime
+import os
 
 app = Flask(__name__)
-DB_NAME = "db.sqlite3"
 
-def init_db():
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS visits (
-        id TEXT PRIMARY KEY,
-        ip TEXT,
-        user_agent TEXT,
-        timestamp TEXT
-    )''')
-    conn.commit()
-    conn.close()
+# Interface with coloring and Faizan's name
+html_template = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Faizan™ IP Tracker</title>
+    <style>
+        body { background-color: #0f0f0f; color: #00ff99; font-family: monospace; text-align: center; padding: 20px; }
+        h1 { color: #00ffff; }
+        .info { border: 1px solid #00ff99; padding: 10px; margin: 20px auto; width: 90%; max-width: 600px; background: #1a1a1a; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <h1>Faizan™ IP Tracker</h1>
+    <p>Welcome to Faizan's Ethical IP Tracking Tool.</p>
+    <div class="info">
+        <h2>📍 Your Info:</h2>
+        <p><strong>IP Address:</strong> {{ ip }}</p>
+        <p><strong>User-Agent:</strong> {{ ua }}</p>
+        <p><strong>Date/Time:</strong> {{ time }}</p>
+    </div>
+</body>
+</html>
+"""
 
-@app.route('/track/<link_id>')
-def track_ip(link_id):
+# Save to logs
+def save_log(ip, ua):
+    log_dir = "logs"
+    os.makedirs(log_dir, exist_ok=True)
+    with open(f"{log_dir}/victim_log.txt", "a") as f:
+        f.write(f"[{datetime.datetime.now()}] IP: {ip} | UA: {ua}\n")
+
+@app.route("/")
+def index():
     ip = request.remote_addr
-    user_agent = request.headers.get('User-Agent')
-    timestamp = datetime.utcnow().isoformat()
-
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    visit_id = str(uuid.uuid4())
-    c.execute("INSERT INTO visits (id, ip, user_agent, timestamp) VALUES (?, ?, ?, ?)",
-              (visit_id, ip, user_agent, timestamp))
-    conn.commit()
-    conn.close()
-
-    return redirect("https://www.google.com")
-
-@app.route('/api/visits')
-def get_visits():
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    c.execute("SELECT ip, user_agent, timestamp FROM visits ORDER BY timestamp DESC")
-    data = c.fetchall()
-    conn.close()
-    return jsonify([{"ip": x[0], "user_agent": x[1], "timestamp": x[2]} for x in data])
+    ua = request.headers.get('User-Agent')
+    time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    save_log(ip, ua)
+    return render_template_string(html_template, ip=ip, ua=ua, time=time)
 
 if __name__ == "__main__":
-    init_db()
     app.run(host="0.0.0.0", port=5000)
