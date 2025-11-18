@@ -25,7 +25,7 @@ The developer is not responsible for any misuse.
 Founder — Faizan™ Privacy Proxy System  
 Ethical Hacker | Visionary Developer | Cyber Strategist  
 📍Pakistan 🇵🇰  
-📧 faizan512@bugcrowdninja,com.com  
+📧 faizan512@bugcrowdninja.com  
 🔗 GitHub: [@MR5121472](https://github.com/MR5121472)
 
 ## 📜 License
